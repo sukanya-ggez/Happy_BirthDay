@@ -11,7 +11,7 @@ on:
         options:
           - demo
           - online
-        default: demo
+        default: online
         required: true
 
 permissions:

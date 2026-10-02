@@ -1,2 +1,9 @@
 
 .birthday-pages-backups/
+node_modules/
+dist/
+test-results/
+.env
+.env.*
+!.env.example
+supabase/.temp/

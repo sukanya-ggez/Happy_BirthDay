@@ -14,7 +14,8 @@ import {
   Volume2,
   VolumeX,
 } from "lucide-react";
-import { service, configurationError } from "../lib/service";
+import { service, configurationError, isDemo } from "../lib/service";
+import { watchPublished } from "../lib/live";
 import type { Gift } from "../../shared/model";
 import { MediaImage } from "./MediaImage";
 import { MusicPlayer } from "./MusicPlayer";
@@ -59,6 +60,31 @@ export function GiftStory({
   const heading = useRef<HTMLHeadingElement>(null),
     timer = useRef<ReturnType<typeof setTimeout> | null>(null),
     sound = useRef<AudioContext | null>(null);
+  const giftRef = useRef(gift);
+  giftRef.current = gift;
+  const hasGift = gift !== null;
+  useEffect(() => {
+    if (preview || isDemo || locked || !hasGift) return;
+    return watchPublished(
+      () => service.published(),
+      (next) => {
+        if (JSON.stringify(next) === JSON.stringify(giftRef.current)) return;
+        giftRef.current = next;
+        setGift(next);
+        setLightbox(null);
+      },
+      () => {
+        if (timer.current) clearTimeout(timer.current);
+        setGift(null);
+        setOpening(false);
+        setLightbox(null);
+        setStep(0);
+        setLocked(true);
+        setCode("");
+        setError("ของขวัญมีการเผยแพร่ใหม่ กรุณาใส่รหัสเพื่อเปิดฉบับล่าสุด");
+      },
+    );
+  }, [preview, locked, hasGift]);
   async function load() {
     if (preview) return;
     setLoading(true);

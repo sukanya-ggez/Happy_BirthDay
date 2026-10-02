@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { demo } from "./demo";
+import { restoreBackup } from "./backup";
 import { allMedia } from "../../shared/model";
 import type { Gift, Draft, GateChange, Media } from "../../shared/model";
 const url = import.meta.env.VITE_SUPABASE_URL?.trim(),
@@ -28,6 +29,13 @@ const supabase =
       })
     : null;
 let recipientToken = "";
+export class ServiceError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.status = status;
+  }
+}
 async function request(
   action: string,
   body: unknown = {},
@@ -68,7 +76,7 @@ async function request(
       /* safe fallback */
     }
     if (r.status === 401 && !admin) recipientToken = "";
-    throw new Error(message);
+    throw new ServiceError(message, r.status);
   }
   return r;
 }
@@ -182,5 +190,8 @@ export const service = {
       draft: d,
       files,
     };
+  },
+  async restore(data: unknown, progress?: (done: number, total: number) => void) {
+    return restoreBackup(data, this, progress);
   },
 };

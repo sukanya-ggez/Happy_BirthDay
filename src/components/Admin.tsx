@@ -32,6 +32,7 @@ import {
 import type { Gift, Draft, Media, Song } from "../../shared/model";
 import { validateGift, validateFile, youtubeId } from "../../shared/model";
 import { service, isDemo, configurationError } from "../lib/service";
+import { MAX_BACKUP_BYTES } from "../lib/backup";
 import { MediaImage } from "./MediaImage";
 import { Modal } from "./Modal";
 import { GiftStory } from "./GiftStory";
@@ -190,6 +191,7 @@ export function Admin() {
     }
     setBusy("กำลังบันทึกฉบับร่าง…");
     setError("");
+    setStatus("");
     try {
       const d = await service.save(
         gift,
@@ -212,13 +214,14 @@ export function Admin() {
     if (!d) return;
     setBusy("กำลังเผยแพร่เนื้อหา…");
     setError("");
+    setStatus("");
     try {
       const next = await service.publish(d.version);
       applyDraft(next);
       setStatus(
         isDemo
           ? "เผยแพร่ฉบับ Demo ในอุปกรณ์นี้แล้ว"
-          : "เผยแพร่เนื้อหาแล้ว ผู้รับจะเห็นฉบับใหม่เมื่อเปิดเว็บอีกครั้ง",
+          : "เผยแพร่เนื้อหาออนไลน์แล้ว ผู้รับที่เปิดเว็บอยู่จะได้รับฉบับใหม่ภายในประมาณ 5 วินาที",
       );
     } catch (e) {
       setError((e as Error).message);
@@ -283,6 +286,26 @@ export function Admin() {
       a.click();
       setTimeout(() => URL.revokeObjectURL(u), 1000);
       setStatus("ดาวน์โหลดสำรองฉบับร่างพร้อมไฟล์แล้ว");
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy("");
+    }
+  }
+  async function restore(file: File) {
+    setBusy("กำลังตรวจไฟล์สำรอง…");
+    setError("");
+    setStatus("");
+    try {
+      if (file.size > MAX_BACKUP_BYTES) throw new Error("ไฟล์สำรองต้องไม่เกิน 128 MB");
+      let data: unknown;
+      try { data = JSON.parse(await file.text()); }
+      catch { throw new Error("อ่านไฟล์ JSON ไม่สำเร็จ กรุณาเลือกไฟล์สำรองของเว็บนี้"); }
+      const next = await service.restore(data, (done, total) =>
+        setBusy(`กำลังนำเข้าไฟล์ ${done} / ${total}…`),
+      );
+      applyDraft(next);
+      setStatus("นำเข้าสำรองและบันทึกฉบับร่างแล้ว ตรวจตัวอย่างแล้วกดเผยแพร่เนื้อหาเพื่อให้ผู้รับเห็น");
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -505,7 +528,7 @@ export function Admin() {
                   title: "เผยแพร่ของขวัญ",
                   message: isDemo
                     ? "เผยแพร่เฉพาะในอุปกรณ์นี้ ผู้เปิดลิงก์จากอุปกรณ์อื่นจะยังไม่เห็นข้อมูลนี้"
-                    : "ผู้รับจะเห็นเนื้อหานี้เมื่อเปิดเว็บใหม่ การเผยแพร่จะยกเลิก session รหัสเดิม หากมีการแก้ไขที่ยังไม่บันทึก ระบบจะบันทึกก่อน",
+                    : "ผู้รับจะเห็นฉบับใหม่เมื่อเปิดเว็บ หรือภายในประมาณ 5 วินาทีหากเปิดอยู่แล้ว หากเปิดใช้รหัส ผู้รับต้องใส่รหัสอีกครั้ง การแก้ไขที่ยังไม่บันทึกจะถูกบันทึกก่อน",
                   action: () => void publish(),
                 })
               }
@@ -1155,6 +1178,25 @@ export function Admin() {
                   รหัสผู้รับไม่รวมในไฟล์นี้
                   สำหรับสำรองฉบับเผยแพร่และฐานข้อมูลออนไลน์ ดู README
                 </p>
+                <Field
+                  label="นำเข้าไฟล์สำรอง JSON"
+                  hint="ย้ายข้อความ รูป เพลง และธีมจากไฟล์สำรอง · ไม่เปลี่ยนรหัสผู้รับ · สูงสุด 128 MB"
+                >
+                  <input
+                    type="file"
+                    accept=".json,application/json"
+                    disabled={!!busy}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      e.target.value = "";
+                      if (file) setConfirm({
+                        title: "นำเข้าไฟล์สำรอง",
+                        message: "นำเข้าเพื่อแทนฉบับร่างปัจจุบัน รวมการแก้ไขที่ยังไม่บันทึกหรือยังไม่เผยแพร่ รหัสผู้รับที่บันทึกไว้จะคงเดิม ผู้รับยังเห็นฉบับเดิมจนกว่าคุณจะกดเผยแพร่เนื้อหา",
+                        action: () => void restore(file),
+                      });
+                    }}
+                  />
+                </Field>
               </section>
             </>
           )}
