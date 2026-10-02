@@ -1,3 +1,4 @@
+import { appUrl } from "../lib/paths";
 import { useEffect, useRef, useState } from "react";
 import {
   Heart,
@@ -146,7 +147,7 @@ export function GiftStory({
   if (locked)
     return (
       <div className="gate-page">
-        <img className="gate-flower" src="/bouquet.webp" alt="" />
+        <img className="gate-flower" src={appUrl("bouquet.webp")} alt="" />
         <form className="paper gate-card" onSubmit={unlock}>
           <LockKeyhole size={26} />
           <p className="eyebrow">A LITTLE SECRET</p>
@@ -189,7 +190,7 @@ export function GiftStory({
         <button className="primary" onClick={() => void load()}>
           ลองอีกครั้ง
         </button>
-        <a href="/admin">หน้าจัดการ</a>
+        <a href={appUrl("admin/")}>หน้าจัดการ</a>
       </div>
     );
   const Icon = icons[step];
@@ -218,7 +219,7 @@ export function GiftStory({
       }
     >
       <header className="gift-header">
-        <a className="wordmark" href="/" aria-label="กลับไปเปิดของขวัญ">
+        <a className="wordmark" href={appUrl()} aria-label="กลับไปเปิดของขวัญ">
           a little love <Heart size={17} />
         </a>
         <div className="header-right">
@@ -260,8 +261,8 @@ export function GiftStory({
         </div>
         {step === 0 && (
           <section className="envelope-scene">
-            <img className="flower flower-left" src="/bouquet.webp" alt="" />
-            <img className="flower flower-right" src="/bouquet.webp" alt="" />
+            <img className="flower flower-left" src={appUrl("bouquet.webp")} alt="" />
+            <img className="flower flower-right" src={appUrl("bouquet.webp")} alt="" />
             <p className="eyebrow">SEALED WITH LOVE, JUST FOR YOU</p>
             <h1 ref={heading} tabIndex={-1} className="handwriting huge">
               Something special
@@ -298,7 +299,7 @@ export function GiftStory({
                 <div className="flower-transition" aria-hidden="true">
                   {Array.from({ length: 7 }, (_, i) => (
                     <img
-                      src="/bouquet.webp"
+                      src={appUrl("bouquet.webp")}
                       key={i}
                       style={{ "--i": i } as React.CSSProperties}
                       alt=""
@@ -350,7 +351,7 @@ export function GiftStory({
               <p className="handwriting">
                 you make the world a little sweeter ♡
               </p>
-              <img className="polaroid-flower" src="/bouquet.webp" alt="" />
+              <img className="polaroid-flower" src={appUrl("bouquet.webp")} alt="" />
             </div>
           </section>
         )}
@@ -487,7 +488,7 @@ export function GiftStory({
         {step === 5 && (
           <section className="letter-scene">
             <div className="letter-paper paper">
-              <img className="letter-flower" src="/bouquet.webp" alt="" />
+              <img className="letter-flower" src={appUrl("bouquet.webp")} alt="" />
               <p className="eyebrow">A LETTER FROM MY HEART</p>
               <h1 ref={heading} tabIndex={-1} className="handwriting huge">
                 With all my love.

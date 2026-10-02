@@ -1,0 +1,91 @@
+# Happy Birthday Pages setup v1
+name: Publish Birthday to GitHub Pages
+
+# A push only saves source. Publishing requires the owner's Run workflow click.
+on:
+  workflow_dispatch:
+    inputs:
+      app_mode:
+        description: "Demo stores data only in this browser; online requires Supabase"
+        type: choice
+        options:
+          - demo
+          - online
+        default: demo
+        required: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: birthday-pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    defaults:
+      run:
+        working-directory: "."
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7, official Vite guide
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: "package-lock.json"
+      - name: Configure Pages
+        id: pages
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6
+      - name: Install dependencies
+        run: npm ci
+      - name: Build website
+        env:
+          APP_BASE_PATH: ${{ steps.pages.outputs.base_path }}/
+          VITE_APP_MODE: ${{ inputs.app_mode }}
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+        run: |
+          node --input-type=module <<'NODE'
+          if (process.env.VITE_APP_MODE === 'online') {
+            const url = process.env.VITE_SUPABASE_URL || '';
+            const key = process.env.VITE_SUPABASE_ANON_KEY || '';
+            let validUrl = false;
+            try { validUrl = new URL(url).protocol === 'https:'; } catch {}
+            let role = '';
+            try { role = JSON.parse(Buffer.from(key.split('.')[1], 'base64url').toString()).role; } catch {}
+            const publicKey = key.startsWith('sb_publishable_') || role === 'anon';
+            if (!validUrl || !publicKey) {
+              console.error('Online requires VITE_SUPABASE_URL and a public anon/publishable key in repository Actions variables. Never use a service-role/secret key.');
+              process.exit(1);
+            }
+          }
+          NODE
+          npm run build
+      - name: Upload site
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
+        with:
+          path: "dist"
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5
+      - name: Show gift and admin links
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+          APP_MODE: ${{ inputs.app_mode }}
+        run: |
+          python3 - <<'PY'
+          import os
+          base = os.environ['PAGE_URL'].rstrip('/') + '/'
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write(f"Gift: {base}\n\nOwner: {base}admin/\n\nMode: {os.environ['APP_MODE']}\n\n")
+              if os.environ['APP_MODE'] == 'demo':
+                  summary.write('Demo data belongs to the current browser and origin only. Other visitors will not see your edited photos, music or text.\n')
+          PY

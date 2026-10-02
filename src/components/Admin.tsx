@@ -1,3 +1,4 @@
+import { appUrl } from "../lib/paths";
 import {
   useEffect,
   useState,
@@ -298,7 +299,7 @@ export function Admin() {
   if (!authenticated || !gift || !draft)
     return (
       <div className="admin-login">
-        <a href="/" className="wordmark">
+        <a href={appUrl()} className="wordmark">
           a little love <Heart size={17} />
         </a>
         <form className="paper login-card" onSubmit={login}>
@@ -350,7 +351,7 @@ export function Admin() {
           <button className="primary" disabled={!!busy || !!configurationError}>
             {busy || (setup ? "ตั้งบัญชี Demo และเริ่มจัดการ" : "เข้าสู่ระบบ")}
           </button>
-          <a className="text-button" href="/">
+          <a className="text-button" href={appUrl()}>
             กลับไปหน้าของขวัญ
           </a>
         </form>
@@ -398,7 +399,7 @@ export function Admin() {
       <aside className={`admin-sidebar ${mobileNav ? "visible" : ""}`}>
         <a
           className="wordmark"
-          href="/"
+          href={appUrl()}
           onClick={(e) => {
             e.preventDefault();
             if (dirty)
@@ -406,10 +407,10 @@ export function Admin() {
                 title: "เปิดหน้าของขวัญ",
                 message: "การแก้ไขยังไม่ได้บันทึก ต้องการออกจากหน้าจัดการไหม?",
                 action: () => {
-                  location.href = "/";
+                  location.href = appUrl();
                 },
               });
-            else location.href = "/";
+            else location.href = appUrl();
           }}
         >
           a little love <Heart size={17} />

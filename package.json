@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:browser": "node scripts/browser-test.mjs",
-    "check:edge": "tsc -p tsconfig.edge.json"
+    "check:edge": "tsc -p tsconfig.edge.json",
+    "postbuild": "node scripts/prepare-pages.mjs"
   },
   "dependencies": {
     "@fontsource/caveat": "^5.3.0",
