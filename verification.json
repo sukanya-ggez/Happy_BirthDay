@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-02",
+  "build": "passed",
+  "edgeTypecheck": "passed",
+  "unitAndDatabaseTests": {
+    "passed": 22,
+    "transport": "API handler uses mock Supabase transport; PostgreSQL migration runs in local PGlite"
+  },
+  "onlineSupabase": "not connected or deployed",
+  "youtube": "IFrame API lifecycle tested with a test double; live YouTube playback not verified",
+  "browserTests": {
+    "passed": 13,
+    "scenarios": [
+      "Desktop: envelope, flower skip, birthday dates",
+      "Candle action, replay, empty album, empty music, letter restart",
+      "Admin requires owner setup and accepts separate local owner account",
+      "Saved draft stays private from recipient and preview shows unsaved draft",
+      "Upload photo, crop, caption, reorder and confirm cancellation",
+      "Audio upload and song link validation",
+      "Configure recipient password and publish atomically",
+      "Recipient gate rejects wrong code then sees published content",
+      "Lightbox keyboard focus stays inside and returns on Escape",
+      "Real audio play/pause controls, tape state and cleanup",
+      "YouTube API lifecycle and blocked-embed fallback (test double)",
+      "Published photo remains after deleting its draft reference",
+      "Mobile 390px: all six screens, reduced motion, responsive admin"
+    ],
+    "uncaughtErrors": [],
+    "viewportWidths": [1440, 390],
+    "clickMethod": "Coordinate input in headless runtime; visible results, focus, disabled states, and media state asserted"
+  }
+}
