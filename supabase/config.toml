@@ -1,0 +1,4 @@
+project_id = "happy-birthday"
+[functions.gift-api]
+# Public gate endpoints accept a separate recipient session; admin JWT verified in handler.
+verify_jwt = false
